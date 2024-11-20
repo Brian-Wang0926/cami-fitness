@@ -1,15 +1,12 @@
 {
-	"dependencies": {
-		"@nestjs/jwt": "^10.2.0",
-		"@nestjs/passport": "^10.0.3",
-		"bcrypt": "^5.1.1",
-		"class-transformer": "^0.5.1",
-		"class-validator": "^0.14.1",
-		"passport": "^0.7.0",
-		"passport-jwt": "^4.0.1"
-	},
-	"devDependencies": {
-		"@types/bcrypt": "^5.0.2",
-		"@types/passport-jwt": "^4.0.1"
+	"name": "cami-fitness",
+	"private": true,
+	"workspaces": [
+		"backend",
+		"frontend"
+	],
+	"scripts": {
+		"backend": "cd backend && pnpm start:dev",
+		"frontend": "cd frontend && pnpm dev"
 	}
 }

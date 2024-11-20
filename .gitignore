@@ -1,0 +1,16 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build
+dist
+build
+.next
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Misc
+.DS_Store
