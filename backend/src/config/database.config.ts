@@ -15,6 +15,5 @@ export const databaseConfig = registerAs('database', () => {
     autoLoadEntities: true,
   };
 
-  console.log('Database Config:', config);
   return config;
 });

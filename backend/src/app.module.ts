@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 import { databaseConfig } from './config/database.config';
 
 @Module({
@@ -15,10 +16,10 @@ import { databaseConfig } from './config/database.config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const config = configService.get('database');
-        console.log('TypeORM Config:', config); // 添加這行來調試配置
         return config;
       },
     }),
+    AuthModule,
   ],
 })
 export class AppModule {}
