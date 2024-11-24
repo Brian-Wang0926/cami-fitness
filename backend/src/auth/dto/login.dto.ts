@@ -4,7 +4,7 @@ import { IsString, IsNotEmpty } from 'class-validator';
 export class LoginDto {
   @IsString() // 驗證必須是字串
   @IsNotEmpty() // 驗證不能為空
-  username: string;
+  email: string;
 
   @IsString()
   @IsNotEmpty()

@@ -20,6 +20,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // 當 token 被驗證後，這個方法會被調用
   // payload 是解密後的 JWT 內容
   async validate(payload: any) {
-    return { userId: payload.sub, username: payload.username };
+    return { userId: payload.sub, email: payload.email };
   }
 }

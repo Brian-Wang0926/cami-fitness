@@ -30,7 +30,7 @@ describe('Auth System', () => {
       return request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
-          username: 'testuser',
+          email: 'testuser@gmail.com',
           password: 'password123',
         })
         .expect(200)
@@ -44,13 +44,13 @@ describe('Auth System', () => {
       return request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
-          username: 'testuser',
+          email: 'testuser@gmail.com',
           password: 'wrongpassword',
         })
         .expect(401);
     });
 
-    it('should fail with missing username', () => {
+    it('should fail with missing email', () => {
       return request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
@@ -63,7 +63,7 @@ describe('Auth System', () => {
       return request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
-          username: 'testuser',
+          email: 'testuser@gmail.com',
         })
         .expect(400);
     });
@@ -72,7 +72,7 @@ describe('Auth System', () => {
       return request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
-          username: 'nonexistentuser',
+          email: 'nonexistentuser@gmail.com',
           password: 'password123',
         })
         .expect(401);

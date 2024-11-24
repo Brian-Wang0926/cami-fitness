@@ -17,7 +17,7 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     // 1. 查找用戶
     const user = await this.userRepository.findOne({
-      where: { username: loginDto.username },
+      where: { email: loginDto.email },
     });
 
     if (!user) {
@@ -36,14 +36,14 @@ export class AuthService {
     }
 
     // 3. 生成 JWT token
-    const payload = { username: user.username, sub: user.id };
+    const payload = { email: user.email, sub: user.id };
 
     // 4. 返回 token 和用戶信息
     return {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
-        username: user.username,
+        email: user.email,
       },
     };
   }

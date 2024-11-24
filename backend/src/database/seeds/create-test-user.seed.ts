@@ -7,7 +7,7 @@ export const createTestUser = async (dataSource: DataSource) => {
 
   // 檢查測試用戶是否已存在
   const existingUser = await userRepository.findOne({
-    where: { username: 'testuser' },
+    where: { email: 'testuser@gmail.com' },
   });
 
   if (!existingUser) {
@@ -15,7 +15,7 @@ export const createTestUser = async (dataSource: DataSource) => {
     const hashedPassword = await bcrypt.hash('password123', 10);
 
     const user = userRepository.create({
-      username: 'testuser',
+      email: 'testuser@gmail.com',
       password: hashedPassword,
     });
 
