@@ -10,9 +10,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1 分鐘
-            retry: 1,
-            refetchOnWindowFocus: false,
+            // 全局查詢配置
+            staleTime: 60 * 1000, // 數據過期時間
+            retry: 1, // 重試次數
+            refetchOnWindowFocus: false, // 焦點重新獲取
           },
         },
       })

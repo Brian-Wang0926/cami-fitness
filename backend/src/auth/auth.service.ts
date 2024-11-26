@@ -1,13 +1,20 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable() // 裝飾器定義這是一個可注入的服務
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     @InjectRepository(User) // 注入 User 實體的 Repository
     private userRepository: Repository<User>, //private 讓這個屬性或方法只能在類別內部使用
@@ -15,36 +22,103 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    // 1. 查找用戶
-    const user = await this.userRepository.findOne({
-      where: { email: loginDto.email },
-    });
+    this.logger.log(`嘗試登入 - Email: ${loginDto.email}`);
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+    try {
+      // 1. 查找用戶
+      const user = await this.userRepository.findOne({
+        where: { email: loginDto.email },
+      });
+
+      // 2. 如果用戶不存在，拋出特定錯誤
+      if (!user) {
+        this.logger.warn(`登入失敗 - 用戶不存在: ${loginDto.email}`);
+        throw new UnauthorizedException('USER_NOT_FOUND');
+      }
+
+      // 3. 驗證密碼
+      const isPasswordValid = await bcrypt.compare(
+        loginDto.password,
+        user.password_hash,
+      );
+
+      if (!isPasswordValid) {
+        this.logger.warn(`登入失敗 - 密碼錯誤: ${loginDto.email}`);
+        throw new UnauthorizedException('密碼錯誤');
+      }
+
+      // 4. 更新最後登入時間
+      await this.userRepository.update(user.user_id, {
+        last_login: new Date(),
+      });
+
+      this.logger.log(`登入成功 - Email: ${loginDto.email}`);
+
+      // 5. 返回 token 和用戶信息
+      return {
+        access_token: this.jwtService.sign({
+          email: user.email,
+          sub: user.user_id,
+        }),
+        user: {
+          user_id: user.user_id,
+          email: user.email,
+          name: user.name,
+        },
+      };
+    } catch (error) {
+      // 重新拋出 UnauthorizedException，保持原始錯誤訊息
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      // 其他錯誤則記錄並拋出通用錯誤
+      this.logger.error(`登入過程發生錯誤: ${error.message}`, error.stack);
+      throw new UnauthorizedException('登入失敗');
     }
+  }
 
-    // 2. 驗證密碼
-    // bcrypt.compare 用於比較明文密碼和加密後的密碼
-    const isPasswordValid = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
+  async register(registerDto: RegisterDto) {
+    this.logger.log(`開始註冊流程 - Email: ${registerDto.email}`);
 
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+    try {
+      // 檢查email是否已存在
+      const existingUser = await this.userRepository.findOne({
+        where: { email: registerDto.email },
+      });
+
+      if (existingUser) {
+        throw new ConflictException('該email已被註冊');
+      }
+
+      // 密碼加密
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(registerDto.password, salt);
+
+      // 創建新用戶
+      const user = this.userRepository.create({
+        email: registerDto.email,
+        password_hash: hashedPassword,
+        name: registerDto.name,
+        gender: registerDto.gender,
+        birth: registerDto.birth,
+      });
+
+      // 儲存用戶
+      await this.userRepository.save(user);
+
+      // 返回結果（不包含密碼）
+      return {
+        message: '註冊成功',
+        user: {
+          email: user.email,
+          name: user.name,
+          gender: user.gender,
+          birth: user.birth,
+        },
+      };
+    } catch (error) {
+      this.logger.error(`註冊過程發生錯誤: ${error.message}`, error.stack);
+      throw error;
     }
-
-    // 3. 生成 JWT token
-    const payload = { email: user.email, sub: user.id };
-
-    // 4. 返回 token 和用戶信息
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: user.id,
-        email: user.email,
-      },
-    };
   }
 }

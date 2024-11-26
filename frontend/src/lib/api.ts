@@ -1,5 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { config } from "@/config";
+import { storage } from "@/lib/storage";
+import { QueryParams } from "@/types/auth";
 
 const axiosInstance = axios.create({
   baseURL: config.apiBaseUrl,
@@ -8,21 +10,10 @@ const axiosInstance = axios.create({
   },
 });
 
-// 定義通用參數類型
-interface QueryParams {
-  [key: string]: string | number | boolean | null | undefined;
-}
-
-const getAuthToken = (): string | null => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("token");
-  }
-  return null;
-};
-
+// 請求攔截器：在發送請求前加入 token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = getAuthToken();
+    const token = storage.get("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -31,11 +22,15 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// 回應攔截器：處理錯誤回應
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
+    console.log("API Error:", error.response?.data); // 添加日誌
+
+    if (error.response?.data?.message) {
+      // 使用後端返回的錯誤訊息
+      error.message = error.response.data.message;
     }
     return Promise.reject(error);
   }

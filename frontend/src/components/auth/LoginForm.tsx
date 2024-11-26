@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -20,7 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginForm() {
   const router = useRouter();
-  const { login, isLoading, error: authError } = useAuth();
+  const { login, isLoading, userError: authError } = useAuth();
   const [values, setValues] = useState({
     email: "",
     password: "",
@@ -37,11 +38,23 @@ export default function LoginForm() {
     setValues({ ...values, showPassword: !values.showPassword });
   };
 
+  const validateForm = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(values.email)) {
+      throw new Error("請輸入有效的電子郵件地址");
+    }
+    if (!values.email || !values.password) {
+      throw new Error("請填寫電子郵件和密碼");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setValidationError("");
 
     try {
+      validateForm();
+
       if (!values.email || !values.password) {
         throw new Error("請填寫電子郵件和密碼");
       }
@@ -56,7 +69,21 @@ export default function LoginForm() {
             router.push("/");
           },
           onError: (error) => {
-            setValidationError(error.message);
+            console.log("登入錯誤:", error.message);
+            // 檢查是否為找不到帳號的錯誤
+            if (error.message === "USER_NOT_FOUND") {
+              // 顯示確認對話框
+              const confirmRegister =
+                window.confirm("找不到此帳號，是否要註冊新帳號？");
+              if (confirmRegister) {
+                // 將email帶入註冊頁面的參數中
+                router.push(
+                  `/register?email=${encodeURIComponent(values.email)}`
+                );
+              }
+            } else {
+              setValidationError(error.message);
+            }
           },
         }
       );
@@ -150,6 +177,15 @@ export default function LoginForm() {
               disabled={isLoading}
             >
               {isLoading ? "登入中..." : "登入"}
+            </Button>
+            {/* 添加註冊按鈕 */}
+            <Button
+              fullWidth
+              variant="text"
+              className="mt-2"
+              onClick={() => router.push("/register")}
+            >
+              還沒有帳號？立即註冊
             </Button>
           </Box>
         </Paper>

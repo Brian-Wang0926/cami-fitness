@@ -13,10 +13,15 @@ export const createTestUser = async (dataSource: DataSource) => {
   if (!existingUser) {
     // 創建新用戶
     const hashedPassword = await bcrypt.hash('password123', 10);
+    const currentDate = new Date();
 
     const user = userRepository.create({
       email: 'testuser@gmail.com',
-      password: hashedPassword,
+      password_hash: hashedPassword,
+      name: '測試用戶',
+      gender: 'male',
+      birth: new Date('1990-01-01'),
+      last_login: currentDate,
     });
 
     await userRepository.save(user);
