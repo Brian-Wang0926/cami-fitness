@@ -18,6 +18,7 @@ import {
   VisibilityOff,
 } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/lib/logger";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -46,6 +47,9 @@ export default function LoginForm() {
     if (!values.email || !values.password) {
       throw new Error("請填寫電子郵件和密碼");
     }
+    if (values.password.length < 6) {
+      throw new Error("密碼長度至少需要6個字元");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -54,6 +58,8 @@ export default function LoginForm() {
 
     try {
       validateForm();
+
+      logger.log("Login attempt");
 
       if (!values.email || !values.password) {
         throw new Error("請填寫電子郵件和密碼");
@@ -69,7 +75,7 @@ export default function LoginForm() {
             router.push("/");
           },
           onError: (error) => {
-            console.log("登入錯誤:", error.message);
+            logger.error("登入錯誤:", error.message);
             // 檢查是否為找不到帳號的錯誤
             if (error.message === "USER_NOT_FOUND") {
               // 顯示確認對話框

@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { config } from "@/config";
 import { storage } from "@/lib/storage";
 import { QueryParams } from "@/types/auth";
+import { logger } from "./logger";
 
 const axiosInstance = axios.create({
   baseURL: config.apiBaseUrl,
@@ -13,23 +14,55 @@ const axiosInstance = axios.create({
 // 請求攔截器：在發送請求前加入 token
 axiosInstance.interceptors.request.use(
   (config) => {
+    // 加入 token
     const token = storage.get("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // 記錄請求
+    logger.log("API Request", {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      params: config.params,
+      data: config.data,
+    });
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    logger.error("Request Error", {
+      message: error.message,
+      config: error.config,
+    });
+    return Promise.reject(error);
+  }
 );
 
 // 回應攔截器：處理錯誤回應
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.log("API Error:", error.response?.data); // 添加日誌
+  (response) => {
+    // 記錄成功響應
+    logger.log("API Response", {
+      method: response.config.method?.toUpperCase(),
+      url: response.config.url,
+      status: response.status,
+      data: response.data,
+    });
 
+    return response;
+  },
+  (error) => {
+    // 記錄錯誤響應
+    logger.error("API Error", {
+      method: error.config?.method?.toUpperCase(),
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message,
+    });
+    
+    // 使用後端返回的錯誤訊息
     if (error.response?.data?.message) {
-      // 使用後端返回的錯誤訊息
       error.message = error.response.data.message;
     }
     return Promise.reject(error);

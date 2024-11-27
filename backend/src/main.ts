@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 async function bootstrap() {
   // 創建應用實例
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'], // 設定全局 logger
+    logger: ['error', 'warn', 'log'], // 設定全局 logger
   });
   const logger = new Logger('Bootstrap');
   const configService = app.get(ConfigService);

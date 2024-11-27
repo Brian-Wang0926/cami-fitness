@@ -22,7 +22,10 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    this.logger.log(`嘗試登入 - Email: ${loginDto.email}`);
+    this.logger.log({
+      type: 'LOGIN_ATTEMPT',
+      email: loginDto.email,
+    });
 
     try {
       // 1. 查找用戶
@@ -52,7 +55,11 @@ export class AuthService {
         last_login: new Date(),
       });
 
-      this.logger.log(`登入成功 - Email: ${loginDto.email}`);
+      this.logger.log({
+        type: 'LOGIN_SUCCESS',
+        email: loginDto.email,
+        userId: user.user_id,
+      });
 
       // 5. 返回 token 和用戶信息
       return {
@@ -67,18 +74,20 @@ export class AuthService {
         },
       };
     } catch (error) {
-      // 重新拋出 UnauthorizedException，保持原始錯誤訊息
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      // 其他錯誤則記錄並拋出通用錯誤
-      this.logger.error(`登入過程發生錯誤: ${error.message}`, error.stack);
-      throw new UnauthorizedException('登入失敗');
+      this.logger.error({
+        type: 'LOGIN_FAILED',
+        email: loginDto.email,
+        error: error.message,
+      });
+      throw error;
     }
   }
 
   async register(registerDto: RegisterDto) {
-    this.logger.log(`開始註冊流程 - Email: ${registerDto.email}`);
+    this.logger.log({
+      type: 'REGISTER_ATTEMPT',
+      email: registerDto.email,
+    });
 
     try {
       // 檢查email是否已存在
@@ -106,6 +115,12 @@ export class AuthService {
       // 儲存用戶
       await this.userRepository.save(user);
 
+      this.logger.log({
+        type: 'REGISTER_SUCCESS',
+        email: registerDto.email,
+        userId: user.user_id,
+      });
+
       // 返回結果（不包含密碼）
       return {
         message: '註冊成功',
@@ -117,7 +132,11 @@ export class AuthService {
         },
       };
     } catch (error) {
-      this.logger.error(`註冊過程發生錯誤: ${error.message}`, error.stack);
+      this.logger.error({
+        type: 'REGISTER_FAILED',
+        email: registerDto.email,
+        error: error.message,
+      });
       throw error;
     }
   }
