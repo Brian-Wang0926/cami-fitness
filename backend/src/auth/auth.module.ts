@@ -5,6 +5,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { User } from '../entities/user.entity';
 import { ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 // @Module 裝飾器用於定義一個模組
 @Module({
@@ -26,8 +28,12 @@ import { ConfigService } from '@nestjs/config';
         };
       },
     }),
+    PassportModule.register({
+      session: true, // 啟用 session
+      defaultStrategy: 'google',
+    }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, GoogleStrategy],
 })
 export class AuthModule {}

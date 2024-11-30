@@ -11,10 +11,15 @@ export class User {
   @PrimaryGeneratedColumn()
   user_id: number;
 
+  // 添加 Google ID 欄位
+  @Column({ nullable: true })
+  google_id: string;
+
   @Column({ unique: true, length: 100 })
   email: string;
 
-  @Column({ length: 255 })
+  // 密碼欄位為可選
+  @Column({ length: 255, nullable: true })
   password_hash: string;
 
   @Column({ length: 50 })

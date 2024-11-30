@@ -17,7 +17,8 @@ export interface RegisterCredentials {
 }
 
 export interface User {
-  id: number;
+  id?: number; // 一般登入用
+  user_id?: string; // Google 登入用
   email: string;
   name: string;
 }
@@ -36,4 +37,15 @@ export interface RegisterResponse {
 export interface AutoLoginResult {
   success: boolean;
   error?: Error | unknown;
+}
+
+export interface LoginFormValues {
+  email: string;
+  password: string;
+  showPassword: boolean;
+}
+
+export interface GoogleLoginResponse {
+  token: string;
+  userData: User;
 }

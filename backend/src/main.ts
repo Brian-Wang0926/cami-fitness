@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as session from 'express-session';
 
 async function bootstrap() {
   // 創建應用實例
@@ -32,6 +33,19 @@ async function bootstrap() {
         const logger = new Logger('Validation');
         logger.debug('驗證錯誤:', JSON.stringify(errors, null, 2));
         return new BadRequestException(errors);
+      },
+    }),
+  );
+
+  // 設定 session 中間件
+  app.use(
+    session({
+      secret: configService.get('SESSION_SECRET'), // 使用環境變數存儲
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 60000 * 60 * 24, // 24 小時
+        secure: process.env.NODE_ENV === 'production', // 生產環境使用 HTTPS
       },
     }),
   );

@@ -15,7 +15,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     // 加入 token
-    const token = storage.get("token");
+    const token = storage.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -60,7 +60,7 @@ axiosInstance.interceptors.response.use(
       data: error.response?.data,
       message: error.message,
     });
-    
+
     // 使用後端返回的錯誤訊息
     if (error.response?.data?.message) {
       error.message = error.response.data.message;

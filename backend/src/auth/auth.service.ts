@@ -15,6 +15,7 @@ import { RegisterDto } from './dto/register.dto';
 @Injectable() // 裝飾器定義這是一個可注入的服務
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User) // 注入 User 實體的 Repository
     private userRepository: Repository<User>, //private 讓這個屬性或方法只能在類別內部使用
@@ -137,6 +138,56 @@ export class AuthService {
         email: registerDto.email,
         error: error.message,
       });
+      throw error;
+    }
+  }
+
+  async generateJwtToken(user: any) {
+    return this.jwtService.sign({
+      email: user.email,
+      sub: user.user_id,
+    });
+  }
+
+  async validateGoogleUser({
+    email,
+    name,
+    googleId,
+  }: {
+    email: string;
+    name: string;
+    googleId: string;
+  }) {
+    try {
+      this.logger.debug('Validating Google user:', { email, name, googleId });
+
+      let user = await this.userRepository.findOne({
+        where: [{ email }, { google_id: googleId }],
+      });
+
+      if (!user) {
+        // 創建新用戶
+        user = this.userRepository.create({
+          email,
+          name,
+          google_id: googleId,
+          // 其他必要欄位
+        });
+
+        await this.userRepository.save(user);
+        this.logger.debug('Created new user from Google login:', user);
+      } else {
+        // 更新現有用戶的 Google ID（如果需要）
+        if (!user.google_id) {
+          user.google_id = googleId;
+          await this.userRepository.save(user);
+          this.logger.debug('Updated existing user with Google ID:', user);
+        }
+      }
+
+      return user;
+    } catch (error) {
+      this.logger.error('Error in validateGoogleUser:', error);
       throw error;
     }
   }
