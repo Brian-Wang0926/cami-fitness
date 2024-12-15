@@ -7,6 +7,7 @@ import { User } from '../entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 // @Module 裝飾器用於定義一個模組
 @Module({
@@ -30,10 +31,11 @@ import { GoogleStrategy } from './strategies/google.strategy';
     }),
     PassportModule.register({
       session: true, // 啟用 session
-      defaultStrategy: 'google',
+      defaultStrategy: ['jwt', 'google'],
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy],
+  providers: [AuthService, GoogleStrategy, JwtStrategy],
+  exports: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

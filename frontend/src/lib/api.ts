@@ -61,6 +61,20 @@ axiosInstance.interceptors.response.use(
       message: error.message,
     });
 
+    // 處理 401 未授權錯誤
+    if (error.response?.status === 401) {
+      // 清除本地存儲的驗證信息
+      storage.clear();
+
+      // 如果不在登入頁面，則重定向到登入頁面
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.includes("/login")
+      ) {
+        window.location.href = "/login?redirect=" + window.location.pathname;
+      }
+    }
+
     // 使用後端返回的錯誤訊息
     if (error.response?.data?.message) {
       error.message = error.response.data.message;

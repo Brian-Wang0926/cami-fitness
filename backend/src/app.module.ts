@@ -1,11 +1,14 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
 import { databaseConfig } from './config/database.config';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
+
+import { AuthModule } from './auth/auth.module';
+import { ExercisesLibraryModule } from './exercises-library/exercises-library.module';
+import { WorkoutsModule } from './workouts/workouts.module';
 
 @Module({
   imports: [
@@ -23,6 +26,8 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
       },
     }),
     AuthModule,
+    ExercisesLibraryModule,
+    WorkoutsModule,
   ],
   providers: [
     {

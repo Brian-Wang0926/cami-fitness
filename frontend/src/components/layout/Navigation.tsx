@@ -40,29 +40,30 @@ export default function Navigation() {
   const commonMenuItems = [
     { text: "個人資料", icon: <PersonIcon />, path: "/profile" },
     { text: "課程行事曆", icon: <CalendarIcon />, path: "/calendar" },
+    { text: "課程管理", icon: <EventNoteIcon />, path: "/course-management" },
   ];
 
   // 學生專屬選單項目
-  const studentMenuItems = [
-    { text: "我的課表", icon: <EventNoteIcon />, path: "/my-schedule" },
-    { text: "課程紀錄", icon: <AssignmentIcon />, path: "/course-history" },
-    { text: "體能數據", icon: <FitnessCenterIcon />, path: "/fitness-data" },
-    { text: "付款紀錄", icon: <PaymentIcon />, path: "/payment-history" },
-  ];
+  // const studentMenuItems = [
+  //   { text: "我的課表", icon: <EventNoteIcon />, path: "/my-schedule" },
+  //   { text: "課程紀錄", icon: <AssignmentIcon />, path: "/course-history" },
+  //   { text: "體能數據", icon: <FitnessCenterIcon />, path: "/fitness-data" },
+  //   { text: "付款紀錄", icon: <PaymentIcon />, path: "/payment-history" },
+  // ];
 
-  // 教練專屬選單項目
-  const trainerMenuItems = [
-    { text: "我的學生", icon: <SchoolIcon />, path: "/my-students" },
-    { text: "課程管理", icon: <EventNoteIcon />, path: "/course-management" },
-    { text: "學生課表", icon: <AssessmentIcon />, path: "/student-schedules" },
-    { text: "業績統計", icon: <AssignmentIcon />, path: "/performance" },
-    { text: "收款紀錄", icon: <PaymentIcon />, path: "/payment-records" },
-  ];
+  // // 教練專屬選單項目
+  // const trainerMenuItems = [
+  //   { text: "我的學生", icon: <SchoolIcon />, path: "/my-students" },
+  //   { text: "課程管理", icon: <EventNoteIcon />, path: "/course-management" },
+  //   { text: "學生課表", icon: <AssessmentIcon />, path: "/student-schedules" },
+  //   { text: "業績統計", icon: <AssignmentIcon />, path: "/performance" },
+  //   { text: "收款紀錄", icon: <PaymentIcon />, path: "/payment-records" },
+  // ];
 
   // 根據用戶角色選擇顯示的選單項目
   const menuItems = [
     ...commonMenuItems,
-    ...(user?.role === "trainer" ? trainerMenuItems : studentMenuItems),
+    // ...(user?.role === "trainer" ? trainerMenuItems : studentMenuItems),
   ];
 
   return (
