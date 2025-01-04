@@ -36,6 +36,9 @@ interface Props {
   trainerId?: string;
 }
 
+// 新增 REST_EXERCISE_ID 常數
+const REST_EXERCISE_ID = "21";
+
 export function ExerciseLibraryModal({
   open,
   onClose,
@@ -96,7 +99,11 @@ export function ExerciseLibraryModal({
         !searchTerm ||
         exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         exercise.equipment.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesTab && matchesSearch;
+
+      // 不在動作庫中顯示休息動作，因為有獨立按鈕
+      const isNotRest = exercise.exercise_id !== REST_EXERCISE_ID;
+     
+      return matchesTab && matchesSearch && isNotRest;
     });
   }, [exercises, currentTab, searchTerm]);
 

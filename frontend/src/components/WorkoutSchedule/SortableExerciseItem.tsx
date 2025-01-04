@@ -14,12 +14,15 @@ import {
   Collapse,
   IconButton,
   Button,
+  InputAdornment,
+  TextField,
 } from "@mui/material";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 // 型別
 import { WorkoutExercise } from "@/types/workout";
@@ -41,6 +44,8 @@ interface Props {
   isEditMode: boolean;
 }
 
+const defaultDuration = "90";
+
 export function SortableExerciseItem({
   exercise,
   onUpdateExercise,
@@ -59,7 +64,7 @@ export function SortableExerciseItem({
 
   // 使用自定義 hook 管理運動組數
   const { sets, addSet, removeSet, updateSet, moveSets, getExerciseInfo } =
-    useWorkoutSets(exercise.setsData, (newSets) => {
+    useWorkoutSets(exercise.setsData || [], (newSets) => {
       onUpdateExercise(exercise.id, { setsData: newSets });
     });
 
@@ -72,18 +77,29 @@ export function SortableExerciseItem({
 
   const exerciseInfo = getExerciseInfo();
 
+  const isRestExercise = exercise.name === "休息";
+
   const handleSetDragEnd = (event: DragEndEvent) => {
     handleDragEnd(event, sets, "set", (oldIndex, newIndex) =>
       moveSets(oldIndex, newIndex)
     );
   };
 
-  return (
-    <Paper
-      ref={setNodeRef}
-      style={style}
-      elevation={2}
-      sx={{
+  console.log("Current exercise sets:", sets);
+
+  // 新增休息組的樣式
+  const paperStyles = isRestExercise
+    ? {
+        p: 2,
+        mb: 1,
+        bgcolor: "background.paper",
+        border: "1px dashed grey.400",
+        color: "text.primary",
+        "&:hover": {
+          bgcolor: "background.default",
+        },
+      }
+    : {
         p: 2,
         mb: 1,
         bgcolor: "grey.900",
@@ -91,8 +107,14 @@ export function SortableExerciseItem({
         "&:hover": {
           bgcolor: "grey.800",
         },
-        transition: "background-color 0.2s",
-      }}
+      };
+
+  return (
+    <Paper
+      ref={setNodeRef}
+      style={style}
+      elevation={isRestExercise ? 0 : 2}
+      sx={paperStyles}
     >
       {/* 運動卡片標題列 */}
       <Box display="flex" alignItems="center">
@@ -118,35 +140,45 @@ export function SortableExerciseItem({
           justifyContent="space-between"
         >
           <Box display="flex" alignItems="center">
-            <Typography
-              component="span"
-              sx={{
-                px: 1,
-                py: 0.5,
-                bgcolor: "primary.main",
-                borderRadius: 1,
-                fontSize: "0.875rem",
-                mr: 2,
-              }}
-            >
-              {exercise.equipment}
-            </Typography>
+            {isRestExercise ? (
+              <AccessTimeIcon sx={{ mr: 1 }} />
+            ) : (
+              <Typography
+                component="span"
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  bgcolor: "primary.main",
+                  borderRadius: 1,
+                  fontSize: "0.875rem",
+                  mr: 2,
+                }}
+              >
+                {exercise.equipment}
+              </Typography>
+            )}
             <Typography>{exercise.name}</Typography>
           </Box>
 
           <Box display="flex" alignItems="center" gap={2}>
-            <Typography>{exerciseInfo.sets}組</Typography>
-            {exerciseInfo.weightRange && (
-              <Typography>{exerciseInfo.weightRange}</Typography>
-            )}
-            {exerciseInfo.repsRange && (
-              <Typography>{exerciseInfo.repsRange}</Typography>
+            {isRestExercise ? (
+              <Typography>{sets[0]?.duration || 0}秒</Typography>
+            ) : (
+              <>
+                <Typography>{exerciseInfo.sets}組</Typography>
+                {exerciseInfo.weightRange && (
+                  <Typography>{exerciseInfo.weightRange}</Typography>
+                )}
+                {exerciseInfo.repsRange && (
+                  <Typography>{exerciseInfo.repsRange}</Typography>
+                )}
+              </>
             )}
 
             <IconButton
               onClick={() => setExpanded(!expanded)}
               size="small"
-              sx={{ color: "white" }}
+              sx={{ color: isRestExercise ? "text.primary" : "white" }}
             >
               {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </IconButton>
@@ -157,42 +189,65 @@ export function SortableExerciseItem({
       {/* 運動組數詳情 */}
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <Box sx={{ mt: 2, pl: 6 }}>
-          <SetTableHeader />
-
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleSetDragEnd}
-          >
-            <SortableContext
-              items={sets.map((set) => set.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {sets.map((set, index) => (
-                <WorkoutSetItem
-                  key={set.id}
-                  set={set}
-                  index={index}
-                  onRemove={removeSet}
-                  onChange={updateSet}
-                  onMove={moveSets}
-                  isEditMode={isEditMode}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
-
-          {isEditMode && (
-            <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-              <Button
-                startIcon={<AddIcon />}
-                onClick={addSet}
-                variant="outlined"
-                sx={{ color: "white", borderColor: "white" }}
-              >
-                新增組數
-              </Button>
+          {isRestExercise ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <TextField
+                type="number"
+                size="small"
+                value={sets[0]?.duration}
+                onChange={(e) => {
+                  // 直接使用 updateSet，傳入索引、欄位名和值
+                  updateSet(0, "duration", e.target.value);
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">秒</InputAdornment>
+                  ),
+                }}
+                disabled={!isEditMode}
+              />
             </Box>
+          ) : (
+            // 原有的運動組數內容
+            <>
+              <SetTableHeader />
+
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleSetDragEnd}
+              >
+                <SortableContext
+                  items={sets.map((set) => set.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {sets.map((set, index) => (
+                    <WorkoutSetItem
+                      key={set.id}
+                      set={set}
+                      index={index}
+                      onRemove={removeSet}
+                      onChange={updateSet}
+                      onMove={moveSets}
+                      isEditMode={isEditMode}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+
+              {isEditMode && (
+                <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+                  <Button
+                    startIcon={<AddIcon />}
+                    onClick={addSet}
+                    variant="outlined"
+                    sx={{ color: "white", borderColor: "white" }}
+                  >
+                    新增組數
+                  </Button>
+                </Box>
+              )}
+            </>
           )}
         </Box>
       </Collapse>

@@ -9,6 +9,7 @@ import {
 } from "@dnd-kit/sortable";
 import { Box, Typography, Container, IconButton, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 // 自定義 hooks
 import { useWorkout } from "@/hooks/useWorkout";
@@ -21,6 +22,11 @@ import { ExerciseLibraryModal } from "./ExerciseLibraryModal";
 // 型別
 import { ExerciseLibrary } from "@/types/exerciseLibrary";
 import { WorkoutExercise } from "@/types/workout";
+
+import { exerciseLibraryService } from "@/services/exerciseLibraryService";
+
+// 休息動作
+const REST_EXERCISE_ID = "21";
 
 // 定義固定的sections配置
 const FIXED_SECTIONS = [
@@ -113,6 +119,48 @@ export function WorkoutSchedule() {
     setIsEditMode(false);
   };
 
+  const handleAddRest = async (sectionId: string) => {
+    // 從運動庫中找到休息動作
+    try {
+      const response = await exerciseLibraryService.getExercisesLibrary();
+      console.log("Rest exercise response:", response);
+
+      const restExercise = response.exercisesLibrary.find(
+        (exercise) => String(exercise.exercise_id) === REST_EXERCISE_ID
+      );
+
+      console.log("Found rest exercise:", restExercise);
+
+      if (restExercise) {
+        // 確保休息動作有預設的組數資料
+        const restExerciseWithSet = {
+          ...restExercise,
+          id: restExercise.exercise_id.toString(), // 用於一般識別
+          exercise_id: restExercise.exercise_id, // 用於識別是否為休息動作
+          setsData: [
+            {
+              id: `${restExercise.exercise_id}-set-${Date.now()}`,
+              duration: "90", // 預設休息時間
+              weight: "",
+              reps: "",
+              fatigue: "",
+            },
+          ],
+        };
+        console.log("restExerciseWithSet", restExerciseWithSet);
+
+        await addExerciseToSection(
+          restExerciseWithSet as WorkoutExercise,
+          sectionId
+        );
+      } else {
+        console.error("Rest exercise not found"); // 新增錯誤日誌
+      }
+    } catch (error) {
+      console.error("Failed to add rest:", error);
+    }
+  };
+
   if (isLoading) return <div>載入中...</div>;
   if (error) return <div>{error}</div>;
 
@@ -158,13 +206,23 @@ export function WorkoutSchedule() {
             >
               <Typography variant="h6">{fixedSection.title}</Typography>
               {isEditMode && (
-                <IconButton
-                  color="primary"
-                  onClick={() => handleOpenLibrary(fixedSection.id)}
-                  size="small"
-                >
-                  <AddIcon />
-                </IconButton>
+                <Box>
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleAddRest(fixedSection.id)}
+                    size="small"
+                    sx={{ mr: 1 }}
+                  >
+                    <AccessTimeIcon />
+                  </IconButton>
+                  <IconButton
+                    color="primary"
+                    onClick={() => handleOpenLibrary(fixedSection.id)}
+                    size="small"
+                  >
+                    <AddIcon />
+                  </IconButton>
+                </Box>
               )}
             </Box>
 
